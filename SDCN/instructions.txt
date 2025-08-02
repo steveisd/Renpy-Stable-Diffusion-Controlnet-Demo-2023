@@ -1,0 +1,39 @@
+These are test scripts to demo stable diffusion cgs and bgs in renpy.
+
+1) make sure you have renpy 8+ installed. (Also stable diffusion webui with python 3.10+. Make sure your python can be accessed by cmd)
+2) make a new renpy project (note: we used resolution 1280x720, if you use another adjust the params in stable diffusion python script as needed)
+3) drop these files in the new project directory accordingly
+
+For poses, feel free to add your own- go wild!
+
+-
+
+More notes:
+Stable Diffusion ControlNet for live custom CGs (and BGs) in renpy:
+Prerequisites: renpy 8+ (www.renpy.org/latest.html), python 3.10+, Stable Diffusion webui (github.com/AUTOMATIC1111/stable-diffusion-webui), SD API (github.com/mix1009/sdwebuiapi). Even if you're not specifically using renpy, you can probably use this for reference.
+
+Note: progress is moving fast rn so this may be slightly outdated/not the latest version. Because of that, this wasn't meant to be an in depth tutorial but more like a brief high-level guide-ish. Also be warned: only works in renpy in dev mode atm (which only works with uncompiled projects).
+
+INFO:
+1) We have a python script where we run SD in the background, and this will communicate with the active renpy script. For CGs, Controlnet will be relied on in the py script and when prompted it will pull randomly from a library of references, in this case a collection of poses. For this, we used a folder in the game directory of the renpy project filled with various pose pics matching resolution of game (ours was 1280 x 720). In our case we used openpose and so openpose pictures, but we also used screenshots from vroid with the avatars as is with ok results. (vroid.com/en/studio).
+
+2) In the the main renpy script, we rely on cues to prompt the SD py script for CGs (and BGs). For this reason, SD must be on with --api flag in the background. For the API itself (particularly for Controlnet), you will need to pip install sdwebuiapi (github.com/mix1009/sdwebuiapi)
+[Reference for using it in py script: github.com/mix1009/sdwebuiapi#create-api-client;
+and here is example code for ControlNet: github.com/mix1009/sdwebuiapi#extension-support---controlnet]
+
+3) Now for the cues specifically, we relied on trigger words in the characters’ dialogue which we turned into tags (simple if-else code can check for them). Simple tags like "GO TO prompt for location here" (so "GO TO" is the tag, and is parsed away to get "prompt for location" which is passed to the py script and processed. This prompt is combined with other behind the scenes prompts like negative prompts and a few more positive prompts just to polish it a bit). In the case for CGs, it literally just has "(CG)" tacked in the prompt- without this, it only changes the BG. If this "(CG)" tag is detected, then ControlNet is activated so we can generate a more coherent person. The character's corresponding model (if provided) is selected (else can use a lora for them or just a set of prompts describing their appearance as close as possible, and these are passed along the prompt).
+[Note: with LM-powered chat-style VNs, the user can manually just input these tags. You can also just use renpy.random functions to randomize when these CGs are generated- maybe you reach a threshold or a time of day- imagination is the limit. The LMs themselves can even be manipulated/"taught" to use these tags so they can call CGs themselves! (But this can be more work to do, and another topic maybe for another day)]
+
+4) So now within your VN, you have events cue these tags and so call SD. The API will be called, the prompts are parsed from the tags and passed to the py script, and if the py script detects it is a CG prompt, then renpy script is cued to hide the character sprite, fade to a black background as it waits for the new CG to be generated, and then once the CG picture is set to be saved in the images and detected to exist by the renpy script, the background can change into it.
+
+Final notes:
+It's still a WIP. Here are some issues yet to be solved:
+1) We've yet to find a way to cleanly compile a renpy project and have the BGs still be able to update since this feature only works on developer mode...
+2) The updating BGs can randomly fail when there are changes to the script; changing the amount of code before the code displaying the new background somehow fixes this for some reason.
+3) The CGs are not perfect: sometimes you'll still get duplicate people (may be an easy fix though). Hires is also recommended, worked well in our experience avoiding mutated characters
+4) Finally, as mentioned this AI space moves so fast that just thinking about this and even trying to resolve the bugs and balancing with life issues may make things slightly obsolete. However, some things should still work.
+5) So this relies on communication between a python script and a renpy script. ATM renpy can't actually seem to import directly such python packages like the SD API for some reason, so that's why we have a separate py script. And the two literally communicate via txt files and checking whether these exist or not (i.e. prompts are passed from renpy script via "prompt.txt", and the py script running on standby in the background is activated when it sees this file exists, reads its contents, and then outputs the corresponding image, which the renpy script then detects, and then loops like that). It's another reason why we can't be too specific.
+
+We'll try our best to answer questions. Because of the time there might be better methods or someone might have already done this more clearly.
+
+If anyone understands this guide and wishes to remake it, feel free to build on it for others.
