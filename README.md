@@ -1,3 +1,5 @@
+2025: moved from GitLab to here for archive purposes. As of the year of moving, may not work. Video: https://www.youtube.com/watch?v=ybNuCfI89Lc
+
 These are test scripts to demo stable diffusion cgs and bgs in renpy.
 
 1) make sure you have renpy 8+ installed. (Also stable diffusion webui with python 3.10+. Make sure your python can be accessed by cmd)
